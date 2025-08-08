@@ -69,7 +69,7 @@ ssh -i <path to your private key> username@ip-address_ansible_control_node
 ```
 # Ansible Controller
 ``` bash
-# Run these commands inside Ubuntu (Windows WSL)
+# Run these commands inside Ubuntu 
 sudo apt-get update -y
 sudo apt-add-repository -y ppa:ansible/ansible
 sudo apt-get update -y
@@ -204,7 +204,7 @@ ping <IP-ADDRESS-OF-WINDOWS-MACHINE>
 windows-hosts ansible_host=10.0.1.4 ansible_user=azureuser ansible_password=ITMGXg5XnVKTe0I ansible_port=5986 ansible_winrm_transport=ntlm ansible_connection=winrm ansible_winrm_server_cert_validation=ignore
 
 [linux_hosts]
-linux-host ansible_host=10.0.1.5 ansible_user=azureuser ansible_ssh_private_key_file=~/metrc_key
+linux-host ansible_host=10.0.1.5 ansible_user=azureuser ansible_ssh_private_key_file=~/metrc_key 
 ```
 # Run an adhoc command to check connectivity with Windows Host
 ``` bash
