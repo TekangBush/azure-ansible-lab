@@ -9,7 +9,8 @@ ssh On the Ubuntu Ansible Controller, install :
 Ansible Controller
 
 
-# Run these commands inside Ubuntu (Windows WSL)
+# Run these commands inside Ubuntu 
+
 
 sudo apt-get update -y
 
@@ -19,15 +20,15 @@ sudo apt-get update -y
 
 sudo apt-get install ansible
 
-ansible --version
+ansible --version (checking if ansible is installed or not)
 
-# Let us try some adhoc commands against localhost
+# Let us try some adhoc commands against localhost 
 
 ansible localhost -m "ping"
 
 ansible localhost -a "hostname"
 
 
-# Install WinRM package (Python client for Windows Remote Management)
+# Install WinRM package (Python client for Windows Remote Management)===> This is needed on ansible controller to be able to talk to Windows host
 
 sudo apt-get -y install python3-winrm
