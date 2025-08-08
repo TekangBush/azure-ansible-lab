@@ -45,7 +45,7 @@ Enable-NetFirewallRule -DisplayName 'Virtual Machine Monitoring (Echo Request - 
 # Follow WinRM instructions from Ansible Documentation
 
 https://docs.ansible.com/ansible/latest/os_guide/windows_winrm.html#winrm-setup
-
+```powershell
 # Enables the WinRM service and sets up the HTTP listener
 
 Enable-PSRemoting -Force
