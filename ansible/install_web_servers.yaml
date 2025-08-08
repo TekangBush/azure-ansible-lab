@@ -1,0 +1,55 @@
+---
+- name: Install Apache on Ubuntu hosts and serve "Hello Metrc"
+  hosts: linux_hosts
+  become: yes
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install Apache package
+      ansible.builtin.apt:
+        name: apache2
+        state: present
+
+    - name: Ensure Apache service is started and enabled
+      ansible.builtin.service:
+        name: apache2
+        state: started
+        enabled: yes
+
+    - name: Create index.html with "hello Metrc"
+      ansible.builtin.copy:
+        dest: /var/www/html/index.html
+        content: "Hello Metrc\n"
+        owner: root
+        group: root
+        mode: '0644'
+
+- name: Install IIS on Windows hosts and serve "Hello Metrc"
+  hosts: windows_hosts
+  tasks:
+    - name: Ensure Chocolatey is installed (optional, not required for IIS)
+      win_chocolatey:
+        name: chocolatey
+        state: present
+      become: yes
+      become_method: runas
+      become_user: azureuser
+
+    - name: Install IIS Windows Feature
+      ansible.windows.win_feature:
+        name: Web-Server
+        state: present
+        include_management_tools: yes
+
+    - name: Create default IIS web page
+      ansible.windows.win_copy:
+        content: "Hello Metrc"
+        dest: C:\inetpub\wwwroot\index.html
+
+    - name: Ensure IIS service is running
+      ansible.windows.win_service:
+        name: W3SVC
+        state: started
+        start_mode: auto
