@@ -209,3 +209,8 @@ linux-host ansible_host=10.0.1.5 ansible_user=azureuser ansible_ssh_private_key_
 # Run an adhoc command to check connectivity with Windows Host
 ``` bash
 ansible windows-hosts -m win_ping
+```
+# Run ansible-playbook 
+``` bash
+ansible-playbook -i /etc/ansible/hosts install_web_servers.yaml
+```
