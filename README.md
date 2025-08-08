@@ -1,51 +1,40 @@
-Ansible control node and two hosts( Linux and Windows) configuration.
+# Ansible control node and two hosts( Linux and Windows) configuration.
 
-Instructions to set up Ansible control Node  & control Windows Host and Linux Host
+# Instructions to set up Ansible control Node  & control Windows Host and Linux Host
 
-Ansible Documentation Reference =====> https://docs.ansible.com/ansible/latest/os_guide/windows_winrm.html#windows-winrm
+# Ansible Documentation Reference =====> https://docs.ansible.com/ansible/latest/os_guide/windows_winrm.html#windows-winrm
 
-ssh On the Ubuntu Ansible Controller, install :
+# ssh On the Ubuntu Ansible Controller, install :
 
-Ansible Controller
-
-
-# Run these commands inside Ubuntu 
-
-
+# Ansible Controller
+``` bash
+# Run these commands inside Ubuntu (Windows WSL)
 sudo apt-get update -y
-
 sudo apt-add-repository -y ppa:ansible/ansible
-
 sudo apt-get update -y
-
 sudo apt-get install ansible
+ansible --version
 
-ansible --version (checking if ansible is installed or not)
-
-# Let us try some adhoc commands against localhost 
-
+# Let us try some adhoc commands against localhost
 ansible localhost -m "ping"
-
 ansible localhost -a "hostname"
 
-
-# Install WinRM package (Python client for Windows Remote Management)===> This is needed on ansible controller to be able to talk to Windows host
-
+# Install WinRM package (Python client for Windows Remote Management)
 sudo apt-get -y install python3-winrm
+```
+# Windows Machine
 
-Windows Machine
-
-Open Powershell with Administrator Privilege and run the following
-
+# Open Powershell with Administrator Privilege and run the following
+``` powershell
 # Modify firewall rule to let in IPv4 and IPv6 traffic
 Enable-NetFirewallRule -DisplayName 'Virtual Machine Monitoring (Echo Request - ICMPv4-In)'
 Enable-NetFirewallRule -DisplayName 'Virtual Machine Monitoring (Echo Request - ICMPv6-In)'
-
+```
 
 # Follow WinRM instructions from Ansible Documentation
 
 https://docs.ansible.com/ansible/latest/os_guide/windows_winrm.html#winrm-setup
-```powershell
+``` powershell
 # Enables the WinRM service and sets up the HTTP listener
 
 Enable-PSRemoting -Force
@@ -72,4 +61,90 @@ $tokenFilterParams = @{
     PropertyType = 'DWORD'
     Force       = $true
 }
-New-ItemProperty @tokenFilterParams 
+New-ItemProperty @tokenFilterParams
+```
+
+# Set up HTTPS with self-signed certificate
+```powershell
+## Create self signed certificate
+
+$certParams = @{
+    CertStoreLocation = 'Cert:\LocalMachine\My'
+    DnsName           = $env:COMPUTERNAME
+    NotAfter          = (Get-Date).AddYears(1)
+    Provider          = 'Microsoft Software Key Storage Provider'
+    Subject           = "CN=$env:COMPUTERNAME"
+}
+$cert = New-SelfSignedCertificate @certParams
+
+#Create HTTPS listener
+$httpsParams = @{
+    ResourceURI = 'winrm/config/listener'
+    SelectorSet = @{
+        Transport = "HTTPS"
+        Address   = "*"
+    }
+    ValueSet = @{
+        CertificateThumbprint = $cert.Thumbprint
+        Enabled               = $true
+    }
+}
+New-WSManInstance @httpsParams
+
+# Opens port 5986 for all profiles
+$firewallParams = @{
+    Action      = 'Allow'
+    Description = 'Inbound rule for Windows Remote Management via WS-Management. [TCP 5986]'
+    Direction   = 'Inbound'
+    DisplayName = 'Windows Remote Management (HTTPS-In)'
+    LocalPort   = 5986
+    Profile     = 'Any'
+    Protocol    = 'TCP'
+}
+New-NetFirewallRule @firewallParams
+```
+# Verify if the listeners are up & running
+``` powershell
+winrm enumerate winrm/config/Listener
+```
+# Output should be similar to the following:
+```powershell
+Listener
+    Address = *
+    Transport = HTTP
+    Port = 5985
+    Hostname
+    Enabled = true
+    URLPrefix = wsman
+    CertificateThumbprint
+    ListeningOn = 10.0.2.15, 127.0.0.1, 192.168.56.155, ::1, fe80::5efe:10.0.2.15%6, fe80::5efe:192.168.56.155%8, fe80::
+ffff:ffff:fffe%2, fe80::203d:7d97:c2ed:ec78%3, fe80::e8ea:d765:2c69:7756%7
+
+Listener
+    Address = *
+    Transport = HTTPS
+    Port = 5986
+    Hostname = SERVER2016
+    Enabled = true
+    URLPrefix = wsman
+    CertificateThumbprint = E6CDAA82EEAF2ECE8546E05DB7F3E01AA47D76CE
+    ListeningOn = 10.0.2.15, 127.0.0.1, 192.168.56.155, ::1, fe80::5efe:10.0.2.15%6, fe80::5efe:192.168.56.155%8, fe80::
+ffff:ffff:fffe%2, fe80::203d:7d97:c2ed:ec78%3, fe80::e8ea:d765:2c69:7756%7
+```
+# To double confirm, you can also check the status of "Windows Remote Management (WS-Management)" service in the Windows "Services" UI!
+# Now, check if you can ping (ICMP) your windows machine from Ansible Controller
+``` bash
+ping <IP-ADDRESS-OF-WINDOWS-MACHINE>
+```
+# Create an inventory (/etc/ansible/hosts) entry containing details of your Windows host and ubuntu host:
+```bash
+[windows_hosts]
+
+windows-hosts ansible_host=10.0.1.4 ansible_user=azureuser ansible_password=ITMGXg5XnVKTe0I ansible_port=5986 ansible_winrm_transport=ntlm ansible_connection=winrm ansible_winrm_server_cert_validation=ignore
+
+[linux_hosts]
+linux-host ansible_host=10.0.1.5 ansible_user=azureuser ansible_ssh_private_key_file=~/metrc_key
+```
+# Run an adhoc command to check connectivity with Windows Host
+``` bash
+ansible windows-hosts -m win_ping
