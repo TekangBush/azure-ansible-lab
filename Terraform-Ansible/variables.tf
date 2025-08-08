@@ -13,7 +13,6 @@ variable "ssh_key_path" {
 variable "windows_password" {
   description = "Admin password for Windows VM"
   sensitive   = true
-  default = "ITMGXg5XnVKTe0I"
 }
 variable "vnet_name" {
   default = "metrc_vnet"
