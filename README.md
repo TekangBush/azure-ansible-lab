@@ -1,6 +1,4 @@
 
-
-
 # Ansible control node and two hosts( Linux and Windows) configuration.
 
 # Azure Resource Deployment Summary 
@@ -32,9 +30,17 @@ az account set --tenant "AnotherTenantIdOrDomain"
 # Run Terraform commands in the terraform working directory (where you have your main.tf file)
 ``` terraform 
 terraform init # to initialize the terraform working directory
+```
+``` terraform 
 terraform fmt -recursive # format terraform code
+```
+``` terraform 
 terraform validate # to validate your code against syntax errors
+```
+``` terraform 
 terraform plan # To view a plan of the resources that will be created
+```
+``` terraform 
 terraform apply -auto-approve # to create the actual resource in Azure 
 ```
 # Clean up 
