@@ -1,11 +1,66 @@
+
+
+
 # Ansible control node and two hosts( Linux and Windows) configuration.
+
+# Azure Resource Deployment Summary 
+1. Network Infrastructure
+ * A Virtual Network (10.0.0.0/16) named var.vnet_name.
+ * A Subnet (10.0.1.0/24) named "metrc-subnet" within the VNet.
+2. Virtual Machines
+   * Linux VMs (2):
+    
+     * Ansible Controller: ansible-controller
+    
+     * Linux Host: linux-host
+    
+      * Both are Ubuntu Server 20.04 LTS VMs (Standard_B1s), using SSH key authentication, each with a Public IP and a Network Security Group allowing SSH (22), HTTP (80), and ICMP (ping) inbound.
+    
+   * Windows VM (1):
+    
+      * Windows Host: windows-host
+    
+       * A Windows Server 2019 Datacenter VM (Standard_DS1_v2), using password authentication, with a Public IP and a Network Security Group allowing ICMP (ping),          WinRM (5986), and RDP (3389) inbound.
+3. Resource Group Context
+   All resources are deployed into an existing Azure Resource Group named "metrc_rg"
+
+# To creat Terraform resources in Azure run the following commands 
+``` powershell
+az login
+az account set --tenant "AnotherTenantIdOrDomain"
+```
+# Run Terraform commands in the terraform working directory (where you have your main.tf file)
+``` terraform 
+terraform init # to initialize the terraform working directory
+terraform fmt -recursive # format terraform code
+terraform validate # to validate your code against syntax errors
+terraform plan # To view a plan of the resources that will be created
+terraform apply -auto-approve # to create the actual resource in Azure 
+```
+# Clean up 
+``` terraform
+terraform destroy -auto-approve
+```
+# Create ssh key to ssh into linux machines 
+``` bash
+ssh-keygen   # this creates two keys private and public keys and the public was copied into two linux machines for authentication
+```
+# copy private key to the ansible controller node 
 
 # Instructions to set up Ansible control Node  & control Windows Host and Linux Host
 
 # Ansible Documentation Reference =====> https://docs.ansible.com/ansible/latest/os_guide/windows_winrm.html#windows-winrm
 
-# ssh On the Ubuntu Ansible Controller, install :
-
+# ssh On the Ubuntu Ansible Controller, install.
+``` bash
+scp <path to my metrc_key on my local machine> username@control_noded_hostname:~ (home of the control node)
+ #Akeep this private key in a hidden folder .ssh
+```
+# Login to the ansible controller and follow the instructions below 
+```bash
+chmod 400 <private_key>
+ssh -i <path to your private key> username@ip-address_ansible_control_node
+```
 # Ansible Controller
 ``` bash
 # Run these commands inside Ubuntu (Windows WSL)
