@@ -1,0 +1,55 @@
+
+name: Sitecore Deployment Pipeline
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-cm:
+    name: Deploy-CM
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Deploy CM
+        run: echo "Deploying CM..."
+
+  deploy-cd-primary:
+    name: Deploy-CD-Primary
+    needs: deploy-cm
+    runs-on: windows-latest
+    steps:
+      - name: Deploy CD Primary
+        run: echo "Deploying CD Primary..."
+
+  swap-cd-primary:
+    name: Swap-CD-Primary
+    needs: deploy-cd-primary
+    runs-on: windows-latest
+    steps:
+      - name: Swap CD Primary
+        run: echo "Swapping CD Primary..."
+
+  deploy-cd-secondary:
+    name: Deploy-CD-Secondary
+    needs: swap-cd-primary
+    runs-on: windows-latest
+    steps:
+      - name: Deploy CD Secondary
+        run: echo "Deploying CD Secondary..."
+
+  swap-cd-secondary:
+    name: Swap-CD-Secondary
+    needs: deploy-cd-secondary
+    runs-on: windows-latest
+    steps:
+      - name: Swap CD Secondary
+        run: echo "Swapping CD Secondary..."
+
+  move-work-items:
+    name: Move Work Items
+    needs: swap-cd-secondary
+    runs-on: windows-latest
+    steps:
+      - name: Move Work Items
+        run: echo "Moving work items..."
